@@ -12,6 +12,7 @@ export default defineConfig({
       manifest: {
         name: 'Do One Thing Today',
         short_name: 'One Thing',
+        start_url: '/do-one-thing-today/', // <--- important
         description: 'Focus on one thing per day.',
         theme_color: '#ffffff',
         background_color: '#ffffff',
