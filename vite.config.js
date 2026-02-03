@@ -20,6 +20,7 @@ export default defineConfig({
         description: 'Focus on one thing per day.',
         theme_color: '#ffffff',
         background_color: '#ffffff',
+        version: pkg.version, 
         display: 'standalone',
         icons: [
           {
