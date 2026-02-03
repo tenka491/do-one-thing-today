@@ -21,7 +21,7 @@ https://tenka491.github.io/do-one-thing-today/
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/do-one-thing-today.git
+git clone https://github.com/tenka491/do-one-thing-today.git
 cd do-one-thing-today
 
 # Install dependencies

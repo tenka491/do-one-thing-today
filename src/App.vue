@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 
+const version = __APP_VERSION__;
 const STORAGE_KEY = "do-one-thing-today";
 
 const task = ref("");
@@ -66,7 +67,7 @@ const saveTask = () => {
     <h1>Do One Thing Today</h1>
 
     <div class="streak">
-      🔥 Streak: <strong>{{ streak }}</strong>
+      🔥 Day Streak: <strong>{{ streak }}</strong>
     </div>
 
     <div v-if="!taskEntered">
@@ -85,6 +86,6 @@ const saveTask = () => {
       </button>
     </div>
 
-    <footer>Local only · No accounts · Zero clutter</footer>
+    <footer>Local only · No accounts · Zero clutter · v{{ version }}</footer>
   </main>
 </template>
