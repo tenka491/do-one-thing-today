@@ -23,8 +23,28 @@ onMounted(() => document.addEventListener("click", handleClickOutside));
 onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 
 // Today's date as a local YYYY-MM-DD string — shared with stats.js so the two
-// can't disagree on what day it is.
-const today = stats.dateStr;
+// can't disagree on what day it is. Held in a ref (rather than called fresh
+// each read) so the computeds below are reactive to it and refresh once the
+// calendar day actually changes, even if `state`/`prefs` haven't.
+const currentDate = ref(stats.dateStr());
+const refreshDate = () => {
+  currentDate.value = stats.dateStr();
+};
+
+// No polling: recheck only at the moments a stale date could actually be
+// visible — the tab regaining visibility or focus (e.g. left open overnight,
+// then switched back to). Costs nothing while the tab just sits open.
+const handleVisibility = () => {
+  if (!document.hidden) refreshDate();
+};
+onMounted(() => {
+  document.addEventListener("visibilitychange", handleVisibility);
+  window.addEventListener("focus", refreshDate);
+});
+onUnmounted(() => {
+  document.removeEventListener("visibilitychange", handleVisibility);
+  window.removeEventListener("focus", refreshDate);
+});
 
 // Persist on any change to the state tree or the display preferences.
 watch(state, () => save(state), { deep: true });
@@ -34,7 +54,7 @@ const anyStatVisible = computed(
   () => prefs.showStreak || prefs.showBest || prefs.showBestDay
 );
 
-const todaysTasks = computed(() => state.days[today()]?.tasks ?? []);
+const todaysTasks = computed(() => state.days[currentDate.value]?.tasks ?? []);
 
 // Only one open (uncompleted) task at a time — finish it before adding another.
 const hasPendingTask = computed(() => todaysTasks.value.some((t) => !t.completed));
@@ -44,7 +64,7 @@ const visibleTodaysTasks = computed(() =>
   prefs.showCompleted ? todaysTasks.value : todaysTasks.value.filter((t) => !t.completed)
 );
 
-const currentStreak = computed(() => stats.currentStreak(state.days, today()));
+const currentStreak = computed(() => stats.currentStreak(state.days, currentDate.value));
 
 const bestStreak = computed(() =>
   Math.max(stats.bestStreak(state.days), state.meta.bestStreakFloor || 0)
@@ -55,7 +75,7 @@ const bestDay = computed(() => stats.bestDay(state.days));
 // Past days (excludes today), most recent first.
 const pastDays = computed(() =>
   Object.keys(state.days)
-    .filter((date) => date !== today())
+    .filter((date) => date !== currentDate.value)
     .sort()
     .reverse()
 );
@@ -67,7 +87,7 @@ const addTask = () => {
     showHint.value = true;
     return;
   }
-  const key = today();
+  const key = currentDate.value;
   if (!state.days[key]) state.days[key] = { tasks: [] };
   state.days[key].tasks.push(makeTask(text, false));
   newTask.value = "";
@@ -153,7 +173,7 @@ const toggleTask = (dayKey, id) => {
         <button
           class="toggle"
           :aria-pressed="task.completed"
-          @click="toggleTask(today(), task.id)"
+          @click="toggleTask(currentDate, task.id)"
         >
           {{ task.completed ? "✓" : "○" }}
         </button>
